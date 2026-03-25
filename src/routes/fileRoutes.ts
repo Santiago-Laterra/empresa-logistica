@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authMiddleware, authorize } from '../middleware/authMiddleware';
-
+import uploadCloud from '../config/cloudinary';
+import uploadFile from '../controller/fileController';
 
 const router = Router();
 
@@ -13,6 +14,8 @@ router.post('/upload', authMiddleware, authorize('super_admin', 'operator'), (re
 router.get('/my-files', authMiddleware, (__, res) => {
   res.send('Lista de tus archivos');
 });
+
+router.post('/upload', authMiddleware, authorize('super_admin', 'operator'), uploadCloud.single('archivo'), uploadFile);
 
 
 export default router;
