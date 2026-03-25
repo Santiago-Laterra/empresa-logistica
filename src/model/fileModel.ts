@@ -1,4 +1,4 @@
-import { Schema, Types } from "mongoose";
+import { Schema, Types, model } from "mongoose";
 import IFile from "../interfaces/IFile";
 
 
@@ -27,4 +27,4 @@ const fileSchema = new Schema<IFile>({
   }
 }, { timestamps: true });
 
-export default fileSchema
+export const File = model<IFile>('User', fileSchema);

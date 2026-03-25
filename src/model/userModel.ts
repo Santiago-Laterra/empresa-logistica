@@ -1,7 +1,5 @@
-import { Schema } from "mongoose";
+import { Schema, model } from "mongoose";
 import { IUser } from "../interfaces/IUser";
-
-
 
 const userSchema = new Schema<IUser>({
   name: { type: String, required: true },
@@ -16,4 +14,4 @@ const userSchema = new Schema<IUser>({
   active: { type: Boolean, default: true } // Para "dar de baja" usuarios sin borrarlos
 }, { timestamps: true });
 
-export default userSchema
+export const User = model<IUser>('User', userSchema);
