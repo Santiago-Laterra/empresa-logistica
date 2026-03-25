@@ -21,12 +21,39 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
     const decoded = jwt.verify(token, SECRET_KEY) as any;
     const user = await User.findById(decoded.id).select('-password');
 
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Usuario no encontrado" });
+    }
+
+    (req as any).user = user; //Evitar errores de tipos en Express
+
+    next();
   } catch (error: any) {
 
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ success: false, message: "El token ha expirado" });
+    }
+    return res.status(401).json({ success: false, message: "Token inválido o fallido" });
 
   }
 
+
+
 }
 
+const authorize = (...roles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as any).user;
 
-export default authMiddleware
+    if (!user || !roles.includes(user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: `El rol ${user?.role || 'desconocido'} no tiene permiso para acceder a esta ruta`
+      });
+    }
+    next();
+  };
+};
+
+
+export { authMiddleware, authorize }
