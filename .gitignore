@@ -1,5 +1,5 @@
 # --- DEPENDENCIAS ---
-backend/node_modules/
+node_modules/
 
 # --- VARIABLES DE ENTORNO (SECRETOS) ---
-backend/.env
+.env
