@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { File } from '../model/fileModel'; // Asegúrate de que la ruta sea correcta
+import { File } from '../model/fileModel';
 
 
 interface CustomRequest extends Request {
@@ -40,4 +40,20 @@ const uploadFile = async (req: CustomRequest, res: Response) => {
   }
 };
 
-export default uploadFile
+const getMyFiles = async (req, res) => {
+  try {
+    // Buscamos archivos donde el receptor sea el usuario actual
+    // y el estado sea 'active'
+    const files = await File.find({
+      receiverId: req.user._id,
+      status: 'active'
+    })
+      .sort({ createdAt: -1 }); // Los más nuevos primero
+
+    res.json(files);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener tus archivos', error });
+  }
+};
+
+export { uploadFile, getMyFiles }

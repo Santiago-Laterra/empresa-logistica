@@ -3,8 +3,8 @@ import { getClients } from '../controller/userController';
 import { authMiddleware, authorize } from '../middleware/authMiddleware';
 
 
-const router = Router();
+const userRouter = Router();
 
-router.get('/clients', authMiddleware, authorize('super_admin', 'operator'), getClients);
+userRouter.get('/clients', authMiddleware, authorize('super_admin', 'operator'), getClients);
 
-export default router;
+export default userRouter;
