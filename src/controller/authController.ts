@@ -51,5 +51,26 @@ const loginUser = async (req: Request, res: Response) => {
   }
 };
 
+const registerUser = async (req, res) => {
+  const { name, email, password } = req.body;
 
-export { generateToken, loginUser }
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    return res.status(400).json({ message: 'El usuario ya existe' });
+  }
+
+  const user = await User.create({
+    name,
+    email,
+    password, // El pre-save hook de Mongoose lo va a encriptar
+    role: 'client' // Por defecto siempre cliente por seguridad
+  });
+
+  if (user) {
+    res.status(201).json({ message: "Usuario creado" });
+  } else {
+    res.status(400).json({ message: 'Datos inválidos' });
+  }
+};
+
+export { generateToken, loginUser, registerUser }
