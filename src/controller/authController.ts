@@ -17,7 +17,6 @@ const generateToken = (id: any): string => {
   });
 };
 
-
 const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
