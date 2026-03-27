@@ -5,17 +5,18 @@ import { uploadFile, getMyFiles } from '../controller/fileController';
 
 const fileRouter = Router();
 
-// Ruta para SUBIR archivos (Solo Admin y Operador)
-fileRouter.post('/upload', authMiddleware, authorize('super_admin', 'operator'), (req, res) => {
-  res.send('Archivo subido con éxito');
-});
+// Proceso para la subida de archivos
+// Middleware de Auth -> Middleware de Rol -> Multer (Cloudinary) -> Controlador
 
-// Ruta para que el CLIENTE vea sus archivos
-fileRouter.get('/my-files', authMiddleware, (__, res) => {
-  res.send('Lista de tus archivos');
-});
+fileRouter.post(
+  '/upload',
+  authMiddleware,
+  authorize('super_admin', 'operator'),
+  uploadCloud.single('file'),
+  uploadFile
+);
 
-fileRouter.post('/upload', authMiddleware, authorize('super_admin', 'operator'), uploadCloud.single('archivo'), uploadFile);
+// Se obtiene los archivos para el cliente
 fileRouter.get('/my-files', authMiddleware, getMyFiles);
 
 export default fileRouter;

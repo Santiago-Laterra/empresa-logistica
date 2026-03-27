@@ -1,11 +1,8 @@
-import { Document } from 'mongoose';
-
-
-export interface IUser extends Document {
+export interface IUser {
   name: string;
   email: string;
   password: string;
   role: 'super_admin' | 'operator' | 'client';
-  phone: string;
+  phone?: string;
   active: boolean;
 }

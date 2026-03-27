@@ -3,13 +3,12 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { User } from '../model/userModel';
 
-// generar el Token
-
 const generateToken = (id: any): string => {
-  const SECRET = process.env.JWT_SECRET;
+
+  const SECRET = process.env.JWT_SECRET
 
   if (!SECRET) {
-    throw new Error("JWT_SECRET no está configurado en el entorno");
+    throw new Error("Secret debe tener un valor");
   }
 
   return jwt.sign({ id }, SECRET, {
@@ -17,58 +16,73 @@ const generateToken = (id: any): string => {
   });
 };
 
-const loginUser = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-
+const registerUser = async (req: Request, res: Response) => {
+  console.log("1. Entró al controlador");
   try {
+    const { name, email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    //hasheo de contraseña
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
 
-    if (user && (await bcrypt.compare(password, user.password))) {
 
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword, // guardamos la contraseña hasheada
+      role: 'client',
+      active: true
+    });
 
-      return res.json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role, // Clave para el Dashboard
-        token: generateToken(user._id),
-      });
-    } else {
-      return res.status(401).json({
-        success: false,
-        message: 'Email o contraseña incorrectos'
-      });
-    }
-  } catch (error) {
-    console.error("Error en loginUser:", error);
+    console.log("3. ✅ USUARIO CREADO EN MONGO:", user._id);
+
+    const token = generateToken(user._id);
+
+    return res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      token: token
+    });
+
+  } catch (error: any) {
+    console.error("❌ ERROR ESPECÍFICO DE MONGO:", error.message);
     return res.status(500).json({
-      success: false,
-      message: 'Error en el servidor'
+      message: "Error en la base de datos",
+      error: error.message
     });
   }
 };
 
-const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+const loginUser = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
 
-  const userExists = await User.findOne({ email });
-  if (userExists) {
-    return res.status(400).json({ message: 'El usuario ya existe' });
-  }
+  try {
+    const user = await User.findOne({ email });
 
-  const user = await User.create({
-    name,
-    email,
-    password, // El pre-save hook de Mongoose lo va a encriptar
-    role: 'client' // Por defecto siempre cliente por seguridad
-  });
+    if (!user) {
+      return res.status(401).json({ message: 'Email o contraseña incorrectos' });
+    }
 
-  if (user) {
-    res.status(201).json({ message: "Usuario creado" });
-  } else {
-    res.status(400).json({ message: 'Datos inválidos' });
+
+    const isMatch = await bcrypt.compare(password, user.password); //Comparacion de contraseñas, enviada con la DB
+
+    if (isMatch) {
+      return res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        token: generateToken(user._id), //generacion del pase, para que entre
+      });
+    } else {
+      return res.status(401).json({ message: 'Email o contraseña incorrectos' });
+    }
+  } catch (error) {
+    console.error("Error en loginUser:", error);
+    return res.status(500).json({ message: 'Error en el servidor' });
   }
 };
 

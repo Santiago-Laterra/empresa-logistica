@@ -3,11 +3,8 @@ import { File } from '../model/fileModel';
 
 
 interface CustomRequest extends Request {
-  file?: any; // Usamos any para simplificar el acceso a .format y .path de Cloudinary
-  user?: {
-    _id: string;
-    [key: string]: any;
-  };
+  file?: any;
+  user?: any;
 }
 
 const uploadFile = async (req: CustomRequest, res: Response) => {
@@ -18,41 +15,31 @@ const uploadFile = async (req: CustomRequest, res: Response) => {
       return res.status(400).json({ message: 'No se subió ningún archivo' });
     }
 
-    // 2. Creamos el registro en nuestra DB
     const newFile = await File.create({
       title,
       fileName: req.file.originalname,
-      fileUrl: req.file.path, // URL segura de Cloudinary
-      fileType: req.file.format || 'unknown', // Accedemos a format de Cloudinary
+      fileUrl: req.file.path, // URL de Cloudinary
+      fileType: req.file.mimetype.split('/')[1], // 'pdf', 'png', etc.
       receiverId,
-      uploaderId: req.user?._id, // Accedemos a user._id inyectado por el middleware
+      uploaderId: req.user._id,
       status: 'active'
     });
 
-    return res.status(201).json(newFile);
-
+    res.status(201).json(newFile);
   } catch (error) {
-    console.error("Error en uploadFile:", error);
-    return res.status(500).json({
-      message: 'Error al procesar la subida',
-      error: error instanceof Error ? error.message : error
-    });
+    res.status(500).json({ message: 'Error al procesar subida' });
   }
 };
 
-const getMyFiles = async (req, res) => {
+const getMyFiles = async (req: CustomRequest, res: Response) => {
   try {
-    // Buscamos archivos donde el receptor sea el usuario actual
-    // y el estado sea 'active'
     const files = await File.find({
       receiverId: req.user._id,
       status: 'active'
-    })
-      .sort({ createdAt: -1 }); // Los más nuevos primero
-
+    }).sort({ createdAt: -1 });
     res.json(files);
   } catch (error) {
-    res.status(500).json({ message: 'Error al obtener tus archivos', error });
+    res.status(500).json({ message: 'Error al obtener archivos' });
   }
 };
 
