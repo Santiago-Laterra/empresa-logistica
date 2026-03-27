@@ -1,4 +1,5 @@
 import dotenv from "dotenv"
+dotenv.config()
 import express from "express"
 import cors from "cors"
 import connectDB from "./config/mongo"
@@ -6,7 +7,7 @@ import userRouter from "./routes/userRoutes"
 import fileRouter from "./routes/fileRoutes"
 import authRouter from "./routes/authRoutes"
 
-dotenv.config()
+
 
 const PORT = process.env.PORT
 
